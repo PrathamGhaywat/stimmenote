@@ -1,50 +1,153 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
+import {
+  Mic,
+  Copy,
+  Sparkles,
+  ChevronDown,
+  Check,
+} from "lucide-react";
 import "./App.css";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+type Styling = "casual" | "semi-casual" | "semi-formal" | "formal";
+type Structure = "prose" | "lists";
+type Context = "general" | "email";
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+function App() {
+  const [recording, setRecording] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [styling, setStyling] = useState<Styling>("semi-casual");
+  const [structure, setStructure] = useState<Structure>("prose");
+  const [context, setContext] = useState<Context>("general");
+  const [copied, setCopied] = useState(false);
+
+  const toggleRecording = () => {
+    setRecording((value) => !value);
+  };
+
+  const copyText = async () => {
+    if (!transcript) return;
+
+    await navigator.clipboard.writeText(transcript);
+    setCopied(true);
+
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+    <main className="app">
+      <section className="workspace">
+        <div className="record-area">
+          <button
+            className={`mic-button ${recording ? "recording" : ""}`}
+            onClick={toggleRecording}
+            aria-label={recording ? "Stop recording" : "Start recording"}
+          >
+            <Mic size={30} strokeWidth={1.8} />
+          </button>
 
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+          <div className="record-title">
+            {recording ? "Listening…" : "Speak"}
+          </div>
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
+          <div className="record-subtitle">
+            {recording
+              ? "Click the microphone to stop"
+              : "Click to start dictating"}
+          </div>
+        </div>
+
+        <section className="editor">
+          <div className="section-label">Transcript</div>
+
+          <textarea
+            value={transcript}
+            onChange={(event) => setTranscript(event.target.value)}
+            placeholder="Your words will appear here..."
+            spellCheck
+          />
+        </section>
+
+        <section className="controls">
+          <Select
+            label="Styling"
+            value={styling}
+            onChange={(value) => setStyling(value as Styling)}
+            options={[
+              ["casual", "Casual"],
+              ["semi-casual", "Semi-casual"],
+              ["semi-formal", "Semi-formal"],
+              ["formal", "Formal"],
+            ]}
+          />
+
+          <Select
+            label="Structure"
+            value={structure}
+            onChange={(value) => setStructure(value as Structure)}
+            options={[
+              ["prose", "Prose"],
+              ["lists", "Lists"],
+            ]}
+          />
+
+          <Select
+            label="Context"
+            value={context}
+            onChange={(value) => setContext(value as Context)}
+            options={[
+              ["general", "General"],
+              ["email", "Email"],
+            ]}
+          />
+        </section>
+
+        <footer className="actions">
+          <button className="transform-button" disabled={!transcript}>
+            <Sparkles size={16} />
+            Transform
+          </button>
+
+          <button
+            className="copy-button"
+            onClick={copyText}
+            disabled={!transcript}
+          >
+            {copied ? <Check size={16} /> : <Copy size={16} />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        </footer>
+      </section>
     </main>
+  );
+}
+
+function Select({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: [string, string][];
+}) {
+  return (
+    <label className="select-wrapper">
+      <span>{label}</span>
+
+      <div className="select">
+        <select value={value} onChange={(e) => onChange(e.target.value)}>
+          {options.map(([optionValue, optionLabel]) => (
+            <option key={optionValue} value={optionValue}>
+              {optionLabel}
+            </option>
+          ))}
+        </select>
+
+        <ChevronDown size={14} />
+      </div>
+    </label>
   );
 }
 
