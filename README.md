@@ -29,6 +29,9 @@ System Requirements:
 - [Git](https://git-scm.com) and [Git LFS](https://git-lfs.com) installed
 - [Rust with cargo](https://rust-lang.org/tools/install/)
 - [Bun v1.4](https://bun.com)
+- [CMake](https://cmake.org)
+- [Clang+LLVM](https://github.com/llvm/llvm-project)
+- [Ninja](https://github.com/ninja-build/ninja)
 
 1. Clone the repository alongside the models:
 ```bash
@@ -37,7 +40,15 @@ cd stimmenote
 git lfs pull
 ```
 
-2. Install the dependencies
+2. Windows compatibility
+If your are on windows, please ensure to follow this step (otherwise you can skip it):
+```bash
+$env:LIBCLANG_PATH="path/to/libclang.dll" # the path to the DLL file of libclang
+$env:CMAKE_GENERATOR="Ninja" # set the cmake generator as ninja (required for whisper.cpp and llama.cpp)
+$env:PATH="path/to/ninja;"+$env:PATH # anywhere with Ninja installed (e.g C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja)
+```
+
+3. Install the dependencies
 ```bash
 # Rust dependencies
 cd src-tauri
@@ -47,7 +58,8 @@ cd ..
 bun install
 ```
 
-3. Build the project
+
+4. Build the project
 ```bash
 bun tauri build # using bun. if you want to build using cargo use: cd src-tauri; cargo build: cd ..
 ```
