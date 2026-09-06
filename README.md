@@ -1,73 +1,72 @@
-# Stimmenote - An awesome and simple voice dictation app
-Stimmenote is a simple voice dictation app that uses a whisper tiny model to convert your yapping into raw transcript, which you can convert into a beautiful, readable text into seconds with the more capable s1-mini model, which transforms the transcript into the way you like with multiple options on how to structure the text.
+# Stimmenote
+
+Stimmenote is a small, local voice dictation app. Record from any available microphone, transcribe the recording with Whisper, edit the result, and copy it wherever you need it.
+
+Transcription runs locally. Audio is converted to 16 kHz mono and passed to a native `whisper.cpp` command-line runtime.
 
 ## Features
-- Ultra fast and simple to use! Made possible by custom quantization of the s1-mini models and a llama.cpp + whisper.cpp based runtime!
-- Convert raw transcript into 4 different styles: formal, semi-formal, semi-casual and casual.
-- Written in Rust for tiny footprint and in React for a beautiful UI.
 
-## Installation
-System requirements:
-- Minimum 8GB RAM (recommended 16GB RAM)
-- Minimum 2GB Storage free (recommended 3GB, required for the models)
-- Microphone (the less sound distortions the audio has, the better)
+- Local speech-to-text with Whisper tiny
+- Microphone selection with device hot-plug support
+- Editable transcript output
+- Copy-to-clipboard
+- Windows, macOS, and Linux build targets
 
-To install it, headover to the [releases](https://github.com/PrathamGhaywat/stimmenote/releases) tab, and get an appropriate installer for your computer.
+## Requirements
 
-### Note to Apple and Windows users:
-Since this app has not been signed for either Windows or Apple maschines, it may trigger Anti Virus. 
-#### Fix for windows:
-When prompted to install the app, the windows defender might say that the app is not trusted, there will be a tiny option on the bottom right of the dialog that says: "Run anyway", you will have to click that.
+For a release build, use the published installer for your platform. The first Windows launch can download the Whisper model and runtime from the app.
 
-#### Fix for Apple users:
-You will have to find a way to install it by enabling an option somewhere in your settings or via the command line to trust this app, if the opening of the app fails
+For development:
 
-### Self-compiling:
-System Requirements:
-- Recommended 16GB RAM
-- Atleast 10GB space
-- [Git](https://git-scm.com) and [Git LFS](https://git-lfs.com) installed
-- [Rust with cargo](https://rust-lang.org/tools/install/)
-- [Bun v1.4](https://bun.com)
-- [CMake](https://cmake.org)
-- [Clang+LLVM](https://github.com/llvm/llvm-project)
-- [Ninja](https://github.com/ninja-build/ninja)
+- Git and Git LFS
+- Rust and Cargo
+- Bun
+- CMake and a C/C++ toolchain
 
-1. Clone the repository alongside the models:
+## Development
+
+Clone the repository and fetch the model files:
+
 ```bash
-git clone https://github.com/PrathamGhaywat/stimmenote
+git clone https://github.com/PrathamGhaywat/stimmenote.git
 cd stimmenote
 git lfs pull
-```
-
-2. Windows compatibility
-If your are on windows, please ensure to follow this step (otherwise you can skip it):
-```bash
-$env:LIBCLANG_PATH="path/to/libclang.dll" # the path to the DLL file of libclang
-$env:CMAKE_GENERATOR="Ninja" # set the cmake generator as ninja (required for whisper.cpp and llama.cpp)
-$env:PATH="path/to/ninja;"+$env:PATH # anywhere with Ninja installed (e.g C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\Ninja)
-```
-
-3. Install the dependencies
-```bash
-# Rust dependencies
-cd src-tauri
-cargo build
-cd ..
-# Bun dependencies
 bun install
 ```
 
+Start the desktop app:
 
-4. Build the project
 ```bash
-bun tauri build # using bun. if you want to build using cargo use: cd src-tauri; cargo build: cd ..
+bun run tauri dev
 ```
 
+Build an installer:
+
+```bash
+bun run tauri build
+```
+
+### Whisper runtime
+
+Release builds bundle a platform-native `whisper-cli` executable in `src-tauri/binaries` during CI. For local development, place the executable for your platform there:
+
+- Windows: `whisper-cli.exe`
+- macOS/Linux: `whisper-cli`
+
+The runtime must accept:
+
+```text
+whisper-cli -m <model> -f <wav> -otxt -of <output-prefix>
+```
+
+The Whisper model is downloaded to the platform app-data directory when it is missing. Model and runtime downloads are never committed to the repository.
+
+## Troubleshooting
+
+- If no audio is recorded, choose another device from the Input menu and check the operating system microphone permission.
+- If transcription cannot start, download the Whisper model and runtime, or confirm that `whisper-cli` is present in `src-tauri/binaries` for a local build.
+- Unsigned development and release installers may trigger operating-system security warnings.
+
 ## License
-This project is opensource under the MIT License. See the [LICENSE file](LICENSE) for more details.
 
-## Problems
-If you encounter any issues while using the projects, whether it's bugs or feature ideas, please open an issue describing the matter in detail. I will try to take a look at it.
-
-If you liked this project, please star it and follow me on [X (formerly Twitter)](https://x.com/@prathamghaywat). 
+This project is released under the MIT License. See [LICENSE](LICENSE).

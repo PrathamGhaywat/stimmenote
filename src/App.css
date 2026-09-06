@@ -112,6 +112,23 @@ button {
   font-size: 12px;
 }
 
+.input-picker {
+  width: min(100%, 360px);
+  margin-top: 20px;
+}
+
+.input-picker .select-wrapper {
+  gap: 10px;
+}
+
+.download-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 .editor {
   min-height: 230px;
 }
@@ -146,12 +163,6 @@ textarea:focus {
 
 textarea::placeholder {
   color: #444;
-}
-
-.controls {
-  display: flex;
-  gap: 24px;
-  padding: 24px 0 22px;
 }
 
 .select-wrapper {
@@ -216,16 +227,6 @@ textarea::placeholder {
 .actions button:disabled {
   cursor: default;
   opacity: 0.3;
-}
-
-.transform-button {
-  color: #111;
-  background: #ededed;
-  font-weight: 500;
-}
-
-.transform-button:not(:disabled):hover {
-  background: white;
 }
 
 .copy-button {

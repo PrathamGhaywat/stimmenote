@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            shell: pwsh
+          - os: ubuntu-22.04
+            shell: bash
+          - os: macos-latest
+            shell: bash
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux build tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y build-essential cmake
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build Whisper runtime (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          git clone --depth 1 https://github.com/ggml-org/whisper.cpp.git whisper.cpp
+          cmake -S whisper.cpp -B whisper.cpp/build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DWHISPER_BUILD_EXAMPLES=ON -DWHISPER_BUILD_TESTS=OFF
+          cmake --build whisper.cpp/build --config Release --target whisper-cli --parallel
+          $runtime = Get-ChildItem -Path whisper.cpp/build -Recurse -Filter whisper-cli.exe | Select-Object -First 1
+          if (-not $runtime) { throw "whisper-cli.exe was not built" }
+          Copy-Item $runtime.FullName src-tauri/binaries/whisper-cli.exe
+
+      - name: Build Whisper runtime (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          git clone --depth 1 https://github.com/ggml-org/whisper.cpp.git whisper.cpp
+          cmake -S whisper.cpp -B whisper.cpp/build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DWHISPER_BUILD_EXAMPLES=ON -DWHISPER_BUILD_TESTS=OFF
+          cmake --build whisper.cpp/build --config Release --target whisper-cli --parallel
+          runtime=$(find whisper.cpp/build -type f -name whisper-cli | head -n 1)
+          test -n "$runtime"
+          cp "$runtime" src-tauri/binaries/whisper-cli
+          chmod +x src-tauri/binaries/whisper-cli
+
+      - name: Install JavaScript dependencies
+        run: bun install
+
+      - name: Build and publish installer
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: Stimmenote ${{ github.ref_name }}
+          releaseBody: See the assets below for platform installers.
+          releaseDraft: false
+          prerelease: false
