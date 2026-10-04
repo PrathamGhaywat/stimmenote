@@ -4,6 +4,8 @@ Stimmenote is a small, local voice dictation app. Record from any available micr
 
 Transcription runs locally. Audio is converted to 16 kHz mono and passed to a native `whisper.cpp` command-line runtime.
 
+This project was made with the help of Muse Spark 1.2 to get the whisper-cli packaged and working with Rust, but all the major parts were coded by hand and mind.
+
 ## Features
 
 - Local speech-to-text with Whisper tiny
